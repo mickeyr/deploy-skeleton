@@ -33,3 +33,24 @@ With configuration and deploy key setup done you can test a deploy locally using
     $ ./<app_module_name>/manage.py collectstatic
 
 After which your app should be live on `http://localhost:4501 <http://localhost:4501>`_.
+
+Remote Deploying
+----------------
+To deploy remotely you need to add some more configuration in ``fabfile.py``, i.e.::
+
+    HOST = "<hostname or IP of remote machine to deploy to, i.e. 178.26.131.86>"
+    REPO_HTTPS_URL = "<https url of a repo containing this deploy repo with your sepcific configurations, i.e. https://jodo@github.org/jodo/jabomly.git>"
+    APP_PATH = "<path where you want to store your app, i.e. /var/webapps/jabomly>"
+    APP_MODULE_NAME = "<name of the Python module containing your Django WSGI module, i.e. jabomly"
+
+After which you can issue an initial provision using::
+
+    $ fab provision
+
+issue a service reload using::
+
+    $ fab reload
+
+and release new code using::
+
+    $ fab release
