@@ -17,6 +17,7 @@ def provision():
     run('git clone %s' % REPO_HTTPS_URL)
     with cd(name):
         sudo('puppet apply ./manifests/site.pp --modulepath ./manifests/modules')
+    release()
     run('rm -rf ~/%s' % name)
 
 
