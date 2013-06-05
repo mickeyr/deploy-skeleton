@@ -38,6 +38,12 @@ class base($base_path) {
         "/etc/nginx/sites-enabled/default":
             ensure => absent,
             require => Package['nginx'];
+        "/home/ubuntu/${app_name}_git.sh":
+            ensure => 'present',
+            owner => 'ubuntu',
+            mode => 0755,
+            content => template("base/git.sh"),
+            require => User['ubuntu'];
     }
 
     service {
