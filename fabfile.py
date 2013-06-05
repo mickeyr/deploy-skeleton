@@ -10,15 +10,14 @@ REPO_HTTPS_URL = "<https url of a repo containing this deploy repo with your sep
 
 @hosts(HOST,)
 def provision():
-    name = os.path.split(REPO_HTTPS_URL)[-1].split('.')[0]
     sudo('apt-get update')
     sudo('apt-get install -y git-core puppet')
-    run('rm -rf ~/%s' % name)
-    run('git clone %s' % REPO_HTTPS_URL)
-    with cd(name):
+    run('rm -rf ~/%s' % APP_MODULE_NAME)
+    run('git clone %s %s' % (REPO_HTTPS_URL, APP_MODULE_NAME))
+    with cd(APP_MODULE_NAME):
         sudo('puppet apply ./manifests/site.pp --modulepath ./manifests/modules')
     release()
-    run('rm -rf ~/%s' % name)
+    run('rm -rf ~/%s' % APP_MODULE_NAME)
 
 
 @hosts(HOST,)
@@ -30,7 +29,7 @@ def reload():
 @hosts(HOST,)
 def release():
     with cd(APP_PATH):
-        sudo('git pull origin', user='ubuntu')
+        sudo('/bin/sh -c "export GIT_SSH=/home/ubuntu/%s_git.sh && git pull origin master"' % (APP_MODULE_NAME), user='ubuntu')
         with prefix('. ve/bin/activate'):
             sudo('./%s/manage.py syncdb --migrate' % APP_MODULE_NAME, user="ubuntu")
             sudo('./%s/manage.py collectstatic --noinput' % APP_MODULE_NAME, user="ubuntu")
