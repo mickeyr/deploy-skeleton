@@ -26,7 +26,7 @@ class webworker($base_path, $app_name, $app_module_name, $repo_url) {
             group => ubuntu,
             require => User['ubuntu'];
         "ubuntu_id_rsa":
-            path => '/home/ubuntu/.ssh/id_rsa',
+            path => "/home/ubuntu/.ssh/${app_name}_deploy_key_id_rsa",
             ensure => present,
             owner => ubuntu,
             group => ubuntu,
@@ -34,7 +34,7 @@ class webworker($base_path, $app_name, $app_module_name, $repo_url) {
             require => [ User['ubuntu'], File['ubuntu_ssh_dir'], ],
             source => 'puppet:///modules/webworker/deploy_key_id_rsa';
         "ubuntu_id_rsa.pub":
-            path => '/home/ubuntu/.ssh/id_rsa.pub',
+            path => "/home/ubuntu/.ssh/${app_name}_deploy_key_id_rsa.pub",
             ensure => present,
             owner => ubuntu,
             group => ubuntu,
@@ -61,7 +61,7 @@ class webworker($base_path, $app_name, $app_module_name, $repo_url) {
 
     exec {
         "clone_repo":
-            command => "git clone $repo_url",
+            command => "/bin/sh -c \"export GIT_SSH=/home/ubuntu/${app_name}_git.sh && git clone $repo_url $app_name\"",
             cwd => "$base_path",
             unless => "test -d $app_path",
             require => [
@@ -69,7 +69,7 @@ class webworker($base_path, $app_name, $app_module_name, $repo_url) {
                 File["base_path", 'ubuntu_id_rsa', 'ubuntu_id_rsa.pub', 'ubuntu_known_hosts'],
             ];
         "update_repo":
-            command => "git pull origin master",
+            command => "/bin/sh -c \"export GIT_SSH=/home/ubuntu/${app_name}_git.sh && git pull origin master\"",
             cwd => "$app_path",
             require => Exec['clone_repo'];
         "create_virtualenv":
@@ -86,6 +86,7 @@ class webworker($base_path, $app_name, $app_module_name, $repo_url) {
             command => '/bin/sh -c ". ve/bin/activate && pip install -r requirements.pip && deactivate"',
             cwd => "$app_path",
             require => Exec['create_virtualenv', 'update_repo'],
+            timeout => 0,
             notify => Service['supervisor'],
     }
 }
